@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Business Cards - CRT Marquis</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #E8DECE; padding: 30px 20px; }
+  .header { text-align: center; margin-bottom: 30px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #8B0000; letter-spacing: 1px; }
+  .header p { font-size: 13px; color: #888; margin-top: 6px; }
+  .section-title {
+    text-align: center; font-size: 14px; font-weight: 700; color: #fff;
+    background: #8B0000; padding: 10px; border-radius: 8px;
+    margin: 24px auto 16px; max-width: 900px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px; max-width: 900px; margin: 0 auto;
+  }
+  .agent-card {
+    background: #F7F0E8; border-radius: 14px; padding: 20px 12px;
+    text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .agent-card img {
+    width: 100px; height: 100px; border-radius: 50%;
+    object-fit: cover; border: 3px solid #8B0000; margin-bottom: 12px;
+    background: #ddd;
+  }
+  .agent-card h2 { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .agent-card .title { font-size: 11px; color: #777; margin-bottom: 12px; line-height: 1.4; flex-grow: 1; }
+  .agent-card a {
+    display: inline-block; background: #8B0000; color: white;
+    text-decoration: none; padding: 8px 20px; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+  }
+  .qr-btn {
+    background: none; border: none; cursor: pointer; margin-top: 8px;
+    font-size: 11px; color: #8B0000; text-decoration: underline;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+    z-index: 9999; justify-content: center; align-items: flex-start; padding-top: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: #F7F0E8; border-radius: 16px; padding: 24px;
+    text-align: center; max-width: 280px; width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .modal-box h3 { color: #8B0000; font-size: 16px; margin-bottom: 12px; }
+  .modal-box img { width: 200px; height: 200px; }
+  .modal-box p { font-size: 11px; color: #888; margin-top: 8px; }
+  .modal-download {
+    display: inline-block; margin: 10px auto 6px; background: #B8860B;
+    color: white; text-decoration: none; padding: 8px 20px;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+  }
+  .modal-close {
+    display: block; margin: 8px auto 0; background: #8B0000; color: white;
+    border: none; padding: 8px 24px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .nav-bar {
+    background: #ffffff; padding: 14px 40px; display: flex;
+    align-items: center; justify-content: flex-end; border-bottom: 1px solid #e0d8d0;
+  }
+  .nav-bar a {
+    color: #333333; text-decoration: none; font-size: 14px; font-weight: 400;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    margin-left: 32px; letter-spacing: 0.5px;
+  }
+  .nav-bar a:hover { color: #8B0000; }
+  .site-footer {
+    background: #ffffff; border-top: 1px solid #ddd; padding: 16px 30px;
+    display: flex; align-items: center; justify-content: space-between; margin-top: 30px;
+  }
+  .site-footer img { height: 50px; object-fit: contain; }
+  .site-footer .copyright { font-size: 11px; color: #777; text-align: center; }
+  .loading-msg { text-align: center; color: #888; font-size: 13px; margin: 40px 0; }
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <a href="https://www.crtmarquis.com/">HOME</a>
+  <a href="https://www.crtmarquis.com/realtors">REALTOR®</a>
+  <a href="https://www.crtmarquis.com/isas">ISAs</a>
+</div>
+
+<div class="modal-overlay" id="qrModal" onclick="closeQR(event)">
+  <div class="modal-box">
+    <h3 id="qrName"></h3>
+    <img id="qrImage" src="" alt="QR Code">
+    <p>Scan to view digital card</p>
+    <a id="qrDownload" href="" class="modal-download" download="qr.png">⬇️ Download QR</a>
+    <button class="modal-close" onclick="document.getElementById('qrModal').classList.remove('active')">✕ Close</button>
+  </div>
+</div>
+
+<div class="header">
+  <h1>CRT Marquis · Keller Williams Select Realty</h1>
+  <p>Our Real Estate Team</p>
+</div>
+
+<div id="app">
+  <p class="loading-msg">Loading team directory…</p>
+</div>
+
+<div style="text-align:center; margin: 30px auto; max-width:900px;">
+  <p style="font-size:14px; color:#555; margin-bottom:10px; font-weight:600;">
+    📄 How to Save Your Digital Business Card
+  </p>
+  <a href="https://crtmarquis.github.io/crt-cards/iphone-instructions.pdf" target="_top"
+     style="display:inline-block; background:#B8860B; color:white; text-decoration:none;
+            padding:10px 20px; border-radius:8px; font-size:13px; font-weight:600; margin:5px;">
+    🍎 iPhone Instructions
+  </a>
+  <a href="https://crtmarquis.github.io/crt-cards/android-instructions.pdf" target="_top"
+     style="display:inline-block; background:#8B0000; color:white; text-decoration:none;
+            padding:10px 20px; border-radius:8px; font-size:13px; font-weight:600; margin:5px;">
+    🤖 Android Instructions
+  </a>
+</div>
+
+<div class="site-footer">
+  <img src="images/crt-logo.png" alt="CRT Marquis">
+  <div class="copyright">© 2023 CRT Marquis · All Rights Reserved</div>
+  <img src="images/kw-logo.png" alt="KW Select Realty">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+/* =========================================================================
+   HOW TO CONNECT YOUR GOOGLE SHEET (do this once):
+   1. Open your Google Sheet of realtors.
+   2. File > Share > Publish to web.
+   3. Under "Link", choose the specific sheet/tab, and set format to
+      "Comma-separated values (.csv)". Click Publish.
+   4. Copy the URL it gives you and paste it below, replacing the
+      placeholder text between the quotes.
+   ========================================================================= */
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1fxI46fi_wTTUREGxFTgX1GAKygCNSXuTXzJOHxk4wac/export?format=csv&gid=1601860741";
+
+  // Controls which sections appear first and in what order.
+  // Any section name in the sheet that isn't listed here will just be
+  // added to the end automatically, in the order it's first seen.
+  const SECTION_ORDER = ["Leadership Team", "Halifax", "Cape Breton", "Mainland"];
+
+  function showQR(name, url) {
+    document.getElementById('qrName').textContent = name;
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(url);
+    document.getElementById('qrImage').src = qrUrl;
+    document.getElementById('qrDownload').href = qrUrl;
+    document.getElementById('qrModal').classList.add('active');
+  }
+  function closeQR(e) {
+    if (e.target === document.getElementById('qrModal')) {
+      document.getElementById('qrModal').classList.remove('active');
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  function renderCard(row) {
+    const name = escapeHtml(row.Name);
+    const title = escapeHtml(row.Title);
+    const link = escapeHtml(row.CardLink);
+    const photo = escapeHtml(row.PhotoFile);
+    return `
+      <div class="agent-card">
+        <img src="images/${photo}" alt="${name}" onerror="this.onerror=null;this.src='images/placeholder.png';">
+        <h2>${name}</h2>
+        <div class="title">${title}</div>
+        <a href="${link}" target="_top">View Card</a>
+        <button class="qr-btn" onclick="showQR('${name.replace(/'/g, "\\'")}', '${link}')">📱 Show QR</button>
+      </div>`;
+  }
+
+  function render(rows) {
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+
+    // Group rows by Section, preserving first-seen order for unlisted sections.
+    const bySection = {};
+    const orderSeen = [];
+    rows.forEach(row => {
+      const section = (row.Section || '').trim();
+      if (!section || !row.Name) return; // skip blank/incomplete rows
+      if (!bySection[section]) {
+        bySection[section] = [];
+        orderSeen.push(section);
+      }
+      bySection[section].push(row);
+    });
+
+    const finalOrder = SECTION_ORDER.filter(s => bySection[s])
+      .concat(orderSeen.filter(s => !SECTION_ORDER.includes(s)));
+
+    if (finalOrder.length === 0) {
+      app.innerHTML = '<p class="loading-msg">No realtors found. Check the Section column in the sheet.</p>';
+      return;
+    }
+
+    finalOrder.forEach(section => {
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'section-title';
+      titleDiv.textContent = section;
+      app.appendChild(titleDiv);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      grid.innerHTML = bySection[section].map(renderCard).join('');
+      app.appendChild(grid);
+    });
+  }
+
+  function loadDirectory() {
+    if (SHEET_CSV_URL.indexOf('PASTE_YOUR') === 0) {
+      document.getElementById('app').innerHTML =
+        '<p class="loading-msg">⚠️ Set SHEET_CSV_URL near the bottom of this file to your published Google Sheet link.</p>';
+      return;
+    }
+    Papa.parse(SHEET_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        render(results.data);
+      },
+      error: function() {
+        document.getElementById('app').innerHTML =
+          '<p class="loading-msg">Could not load the team directory right now. Please try again shortly.</p>';
+      }
+    });
+  }
+
+  loadDirectory();
+</script>
+</body>
+</html>
